@@ -1,16 +1,20 @@
 package com.pipa.back.service.implement;
 
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import com.pipa.back.common.CertificationNumber;
 import com.pipa.back.dto.request.auth.CheckCertificationRequestDto;
 import com.pipa.back.dto.request.auth.EmailCertificationRequestDto;
 import com.pipa.back.dto.request.auth.IdCheckRequestDto;
+import com.pipa.back.dto.request.auth.SignUpRequestDto;
 import com.pipa.back.dto.response.ResponseDto;
 import com.pipa.back.dto.response.auth.CheckCertificationResponseDto;
 import com.pipa.back.dto.response.auth.EmailCertificationResponseDto;
 import com.pipa.back.dto.response.auth.IdCheckResponseDto;
+import com.pipa.back.dto.response.auth.SignUpResponseDto;
 import com.pipa.back.entity.CertificationEntity;
 import com.pipa.back.provider.EmailProvider;
 import com.pipa.back.repository.CertificationRepository;
@@ -25,6 +29,8 @@ public class AuthServiceImplement implements AuthService {
     private final CertificationRepository certificationRepository;
     private final UserRepository userRepository;
     private final EmailProvider emailProvider;
+
+    private PasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
 
     @Override
     public ResponseEntity<? super IdCheckResponseDto> idCheck(IdCheckRequestDto dto) {
@@ -94,5 +100,39 @@ public class AuthServiceImplement implements AuthService {
             return ResponseDto.databaseError();
         }
         return CheckCertificationResponseDto.success();
+    }
+
+    @Override
+    public ResponseEntity<? super SignUpResponseDto> signUp(SignUpRequestDto dto) {
+        try {
+            String userId = dto.getId();
+            String email = dto.getEmail();
+            String password = dto.getPassword();
+            String encodedPassword = passwordEncoder.encode(password);
+            String certificationNumber = dto.getCertificationNumber();
+
+            dto.setPassword(encodedPassword);
+
+            // certification 체크
+            CertificationEntity certificationEntity = certificationRepository.getByUserId(userId);
+            if (certificationEntity == null)
+                return SignUpResponseDto.certificationFail();
+
+            boolean isMatched = certificationEntity.getEmail().equals(email)
+                    && certificationEntity.getCertificationNumber().equals(certificationNumber);
+            if (!isMatched)
+                return SignUpResponseDto.certificationFail();
+
+            // id 중복 체크
+            boolean isExistId = userRepository.existsByUserId(userId);
+            if (isExistId)
+                return SignUpResponseDto.duplicateId();
+
+        } catch (Exception e) {
+            e.printStackTrace();
+
+            return ResponseDto.databaseError();
+        }
+        return SignUpResponseDto.success();
     }
 }
