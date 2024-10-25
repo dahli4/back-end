@@ -16,6 +16,7 @@ import com.pipa.back.dto.response.auth.EmailCertificationResponseDto;
 import com.pipa.back.dto.response.auth.IdCheckResponseDto;
 import com.pipa.back.dto.response.auth.SignUpResponseDto;
 import com.pipa.back.entity.CertificationEntity;
+import com.pipa.back.entity.UserEntity;
 import com.pipa.back.provider.EmailProvider;
 import com.pipa.back.repository.CertificationRepository;
 import com.pipa.back.repository.UserRepository;
@@ -107,11 +108,7 @@ public class AuthServiceImplement implements AuthService {
         try {
             String userId = dto.getId();
             String email = dto.getEmail();
-            String password = dto.getPassword();
-            String encodedPassword = passwordEncoder.encode(password);
             String certificationNumber = dto.getCertificationNumber();
-
-            dto.setPassword(encodedPassword);
 
             // certification 체크
             CertificationEntity certificationEntity = certificationRepository.getByUserId(userId);
@@ -127,6 +124,16 @@ public class AuthServiceImplement implements AuthService {
             boolean isExistId = userRepository.existsByUserId(userId);
             if (isExistId)
                 return SignUpResponseDto.duplicateId();
+
+            String password = dto.getPassword();
+            String encodedPassword = passwordEncoder.encode(password);
+            dto.setPassword(encodedPassword);
+
+            UserEntity userEntity = new UserEntity(dto);
+            userRepository.save(userEntity);
+
+            // delete
+            certificationRepository.deleteByUserId(userId);
 
         } catch (Exception e) {
             e.printStackTrace();
