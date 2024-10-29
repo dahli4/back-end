@@ -46,7 +46,7 @@ public class WebSecurityConfig {
                         .requestMatchers("/api/v1/admin/**").hasRole("ADMIN")
                         .anyRequest().authenticated())
                 .exceptionHandling(exceptionHandling -> exceptionHandling
-                        .authenticationEntryPoint(new FailedAuthenticationEntryPotint()))
+                        .authenticationEntryPoint(new FailedAuthenticationEntryPoint()))
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
         return httpSecurity.build();
@@ -66,7 +66,7 @@ public class WebSecurityConfig {
     }
 }
 
-class FailedAuthenticationEntryPotint implements AuthenticationEntryPoint {
+class FailedAuthenticationEntryPoint implements AuthenticationEntryPoint {
 
     @Override
     public void commence(HttpServletRequest request, HttpServletResponse response,
