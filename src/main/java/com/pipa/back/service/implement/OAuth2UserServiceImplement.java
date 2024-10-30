@@ -25,11 +25,12 @@ public class OAuth2UserServiceImplement extends DefaultOAuth2UserService {
         OAuth2User oAuth2User = super.loadUser(request);
         String oauthClientName = request.getClientRegistration().getClientName();
 
-        try {
-            System.out.println(new ObjectMapper().writeValueAsString(oAuth2User.getAttributes()));
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        // try {
+        // System.out.println(new
+        // ObjectMapper().writeValueAsString(oAuth2User.getAttributes()));
+        // } catch (Exception e) {
+        // e.printStackTrace();
+        // }
 
         UserEntity userEntity = null;
         String userId = null;
